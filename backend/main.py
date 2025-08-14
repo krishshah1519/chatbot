@@ -1,0 +1,30 @@
+
+from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
+from backend.app.db.session import engine, Base
+from backend.app.api import chat,user
+
+Base.metadata.create_all(bind=engine)
+
+app = FastAPI(
+    title="Chat API",
+    description="Backend for AI Chat with persistent history",
+    version="1.0.0"
+)
+
+# CORS Middleware
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+
+app.include_router(chat.router, tags=["Chats"])
+app.include_router(user.router, tags=["Users"])
+
+@app.get("/")
+def root():
+    return {"message": "Chat backend is running!"}
