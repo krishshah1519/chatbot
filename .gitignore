@@ -2,7 +2,7 @@ backend/.env
 backend/.venv/
 backend/app/database.db
 .idea/
-backend/__pycache__/
+__pycache__/
 frontend/node_modules
 frontend/.pnp/
 frontend/.pnp.js
