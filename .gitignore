@@ -1,7 +1,7 @@
 backend/.env
 backend/.venv/
 backend/app/database.db
-.idea
+.idea/
 backend/__pycache__/
 frontend/node_modules
 frontend/.pnp/
