@@ -4,7 +4,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from backend.app.db.session import engine, Base
 from backend.app.api import chat,user
 
-Base.metadata.create_all(bind=engine)
+
 
 app = FastAPI(
     title="Chat API",
@@ -15,7 +15,7 @@ app = FastAPI(
 # CORS Middleware
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=["http://localhost:3000"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
