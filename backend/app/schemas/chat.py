@@ -2,21 +2,32 @@ from pydantic import BaseModel
 from typing import List, Dict, Any
 from datetime import datetime
 from typing import Optional
+from backend.app.schemas.message import MessageOut
 
 
-class ChatBase(BaseModel):
-    chat_history: List[Dict[str, Any]] = []
 
 
-class ChatCreate(ChatBase):
-    user_id: str
-
-class ChatOut(ChatBase):
-    chat_id: str
+class ChatOut(BaseModel):
+    id: str
     user_id: str
     title:str
     created_at: datetime
     updated_at: Optional[datetime] = None
+
+    class Config:
+        from_attributes = True
+
+class ChatCreateResponse(BaseModel):
+    id: str
+    title: str
+
+
+class ChatTitleUpdate(BaseModel):
+    title: str
+
+
+class ChatMessageOut(ChatOut):
+    messages: List[MessageOut]
 
     class Config:
         from_attributes = True
