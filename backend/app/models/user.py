@@ -11,6 +11,11 @@ class User(Base):
     username = Column(String(50), unique=True, index=True)
     email = Column(String(255), unique=True, index=True)
     password = Column(String(255))
-    chats= relationship("Chat",backref="user",cascade="all, delete-orphan")
+
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     updated_at = Column(DateTime(timezone=True), onupdate=func.now())
+
+    chats= relationship("Chat",back_populates="user",cascade="all, delete-orphan")
+
+    def __repr__(self):
+        return f"<User(username = {self.username})>"
