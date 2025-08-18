@@ -14,10 +14,4 @@ class QuestionRequest(BaseModel):
     question: str
 
 
-class ChatCreateResponse(BaseModel):
-    chat_id: str
-    title: str
 
-
-class ChatTitleUpdate(BaseModel):
-    title: str
