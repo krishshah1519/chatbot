@@ -39,7 +39,7 @@ const AuthPage = () => {
   };
 
   return (
-    <div className="flex justify-center items-center min-h-screen bg-gradient-to-br from-blue-800 to-purple-700 dark:bg-gray-900 p-4">
+    <div className="flex justify-center items-center min-h-screen bg-gradient-to-br from-blue-600 to-pink-500 to-purple-700 dark:bg-gray-900 p-4">
       <motion.div
         key={isLogin ? "login" : "register"}
         className="bg-white dark:bg-gray-800 p-12 rounded-xl shadow-xl dark:shadow-2xl text-center w-full max-w-sm"
