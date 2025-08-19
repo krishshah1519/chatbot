@@ -6,7 +6,7 @@ __pycache__/
 frontend/node_modules
 frontend/.pnp/
 frontend/.pnp.js
-
+.db*
 frontend/coverage/
 frontend/build/
 
