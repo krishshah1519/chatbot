@@ -23,13 +23,16 @@ export const getChatHistory = async (token, chatId) => {
   return response.data;
 };
 
-export const sendMessage = async (token, chatId, question) => {
-  const response = await axios.post(
-    `${API_URL}/chats/${chatId}/ask`,
-    { question },
-    getConfig(token)
-  );
-  return response.data;
+// Simplified to return the fetch promise directly
+export const sendMessage = (token, chatId, message) => {
+  return fetch(`${API_URL}/chats/${chatId}/message`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${token}`,
+    },
+    body: JSON.stringify({ message }),
+  });
 };
 
 export const renameChat = async (token, chatId, newTitle) => {

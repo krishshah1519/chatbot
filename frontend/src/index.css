@@ -22,3 +22,28 @@ code {
   font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
     monospace;
 }
+
+/* Blinking cursor animation */
+.blinking-cursor {
+  display: inline-block;
+  width: 8px;
+  height: 1.2rem; /* Adjust to match font size */
+  background-color: #3b82f6; /* blue-500 */
+  animation: blink 1s step-end infinite;
+  margin-left: 2px;
+  vertical-align: bottom;
+}
+
+@keyframes blink {
+  from, to { background-color: transparent }
+  50% { background-color: #3b82f6; } /* blue-500 */
+}
+
+.dark .blinking-cursor {
+  background-color: #60a5fa; /* blue-400 */
+}
+
+.dark @keyframes blink {
+  from, to { background-color: transparent }
+  50% { background-color: #60a5fa; } /* blue-400 */
+}

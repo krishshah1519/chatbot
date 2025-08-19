@@ -5,7 +5,7 @@ import { FaUserCircle } from 'react-icons/fa';
 import { MdWbSunny, MdDarkMode } from 'react-icons/md';
 
 const Navbar = () => {
-  const { logout } = useAuth();
+  const { user, logout } = useAuth();
   const { theme, toggleTheme } = useTheme();
   const [dropdownOpen, setDropdownOpen] = useState(false);
 
@@ -24,7 +24,11 @@ const Navbar = () => {
           </div>
           {dropdownOpen && (
             <div className="absolute top-full right-0 bg-white rounded-lg shadow-lg p-4 min-w-[200px] z-10 mt-2 dark:bg-gray-700">
-              <p className="text-gray-700 text-sm mb-2 dark:text-gray-200">Logged in as: User</p>
+              {user && (
+                 <p className="text-gray-700 text-sm mb-2 dark:text-gray-200">
+                  Logged in as: <strong>{user.sub}</strong>
+                </p>
+              )}
               <button onClick={logout} className="w-full p-2 bg-blue-500 text-white rounded-md cursor-pointer hover:bg-blue-600">
                 Logout
               </button>
