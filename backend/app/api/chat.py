@@ -40,7 +40,7 @@ async def delete_chat(chat_id: str,db: Session= Depends(get_db), current_user: U
 @router.post("/chats/{chat_id}/message", status_code=status.HTTP_201_CREATED)
 async def chat(chat_id:str ,message: MessageCreate, db: Session = Depends(get_db),current_user: User = Depends(get_current_user)):
 
-    chat_service.get_chat_by_id(chat_id, current_user.id, db)
+    chat_service.touch_chat(chat_id, current_user.id, db)
     message_service.create_message(
         chat_id=chat_id, sender="user", message_text=message.message, db=db
     )
