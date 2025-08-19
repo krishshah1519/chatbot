@@ -1,70 +1,40 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
-import { getChats, getChatHistory, sendMessage, createChat, renameChat, deleteChat } from '../api/chat';
+import { sendMessage } from '../api/chat';
 import ChatHistory from './ChatHistory';
 import ChatInput from './ChatInput';
 import Navbar from './Navbar';
 import ChatSidebar from './ChatSidebar';
+import { useChats } from '../hooks/useChats';
+import { useChatHistory } from '../hooks/useChatHistory';
 
 const ChatPage = () => {
   const { token } = useAuth();
-  const [chats, setChats] = useState([]);
   const [selectedChatId, setSelectedChatId] = useState(null);
-  const [chatHistory, setChatHistory] = useState([]);
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState('');
+  const { chats, error: chatsError, handleCreateNewChat, handleDeleteChat, handleRenameChat, refetchChats } = useChats();
+  const { chatHistory, setChatHistory, isLoading, setIsLoading, error: historyError } = useChatHistory(selectedChatId);
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
 
-  // Fetch all chats for the user
   useEffect(() => {
-    const fetchChats = async () => {
-      try {
-        const chatsData = await getChats(token);
-        setChats(chatsData);
-        if (chatsData.length > 0 && !selectedChatId) {
-          setSelectedChatId(chatsData[0].id);
-        }
-      } catch (err) {
-        setError('Failed to fetch chats.');
-      }
-    };
-    if (token) {
-        fetchChats();
+    if (chats.length > 0 && !selectedChatId) {
+      setSelectedChatId(chats[0].id);
     }
-  }, [token]);
-
-  // Fetch history for the selected chat
-  useEffect(() => {
-    if (selectedChatId) {
-      const fetchHistory = async () => {
-        setIsLoading(true);
-        setChatHistory([]);
-        try {
-          const chatData = await getChatHistory(token, selectedChatId);
-          setChatHistory(chatData.messages);
-        } catch (err) {
-          setError('Failed to fetch chat history.');
-        } finally {
-          setIsLoading(false);
-        }
-      };
-      fetchHistory();
-    }
-  }, [selectedChatId, token]);
+  }, [chats, selectedChatId]);
 
   const handleSendMessage = async (message) => {
-    if (!message.trim() || isLoading) return;
+    if (!message.trim() || isLoading || !selectedChatId) return;
 
-    // Create temporary IDs for keys
     const tempUserMessageId = `user-${Date.now()}`;
     const tempBotMessageId = `bot-${Date.now()}`;
 
-    // Add user message and bot placeholder in one atomic update
+    // Add user message and an empty placeholder for the bot's response
     setChatHistory(prev => [
       ...prev,
       { id: tempUserMessageId, sender: 'user', message: message },
       { id: tempBotMessageId, sender: 'assistant', message: '' }
     ]);
+
+    // Set loading state to true immediately
     setIsLoading(true);
 
     try {
@@ -82,6 +52,7 @@ const ChatPage = () => {
 
         if (done) {
           setIsLoading(false);
+          refetchChats(); // Refetch chats to update the order
           return;
         }
 
@@ -100,7 +71,6 @@ const ChatPage = () => {
           return newHistory;
         });
 
-        // Continue reading
         await readStream();
       };
 
@@ -108,7 +78,6 @@ const ChatPage = () => {
 
     } catch (err) {
       console.error('Failed to send message:', err);
-      setError('Failed to send message.');
       setChatHistory(prev => {
         const newHistory = [...prev];
         const lastMessage = newHistory[newHistory.length - 1];
@@ -117,46 +86,28 @@ const ChatPage = () => {
         }
         return newHistory;
       });
+      // Ensure loading is turned off in case of an error
       setIsLoading(false);
     }
   };
 
-  const handleCreateNewChat = async () => {
-    try {
-      const newChat = await createChat(token);
-      setChats(prevChats => [newChat, ...prevChats]);
+  const createNewChat = async () => {
+    const newChat = await handleCreateNewChat();
+    if (newChat) {
       setSelectedChatId(newChat.id);
       setChatHistory([]);
-    } catch (err) {
-      setError('Failed to create new chat.');
     }
   };
 
-  const handleDeleteChat = async (chatId) => {
-    try {
-      await deleteChat(token, chatId);
-      const updatedChats = chats.filter(chat => chat.id !== chatId);
-      setChats(updatedChats);
-
-      if (selectedChatId === chatId) {
-        if (updatedChats.length > 0) {
-          setSelectedChatId(updatedChats[0].id);
-        } else {
-          setSelectedChatId(null);
-          setChatHistory([]);
-        }
+  const deleteExistingChat = async (chatId) => {
+    const updatedChats = await handleDeleteChat(chatId);
+    if (selectedChatId === chatId) {
+      if (updatedChats && updatedChats.length > 0) {
+        setSelectedChatId(updatedChats[0].id);
+      } else {
+        setSelectedChatId(null);
+        setChatHistory([]);
       }
-    } catch (err) {
-      setError('Failed to delete chat.');
-    }
-  };
-
-  const handleRenameChat = async (chatId, newTitle) => {
-    try {
-      await renameChat(token, chatId, newTitle);
-      setChats(chats.map(chat => (chat.id === chatId ? { ...chat, title: newTitle } : chat)));
-    } catch (err) {
-      setError('Failed to rename chat.');
     }
   };
 
@@ -170,9 +121,9 @@ const ChatPage = () => {
           chats={chats}
           selectedChatId={selectedChatId}
           onSelectChat={setSelectedChatId}
-          onNewChat={handleCreateNewChat}
+          onNewChat={createNewChat}
           onRenameChat={handleRenameChat}
-          onDeleteChat={handleDeleteChat}
+          onDeleteChat={deleteExistingChat}
           isSidebarOpen={isSidebarOpen}
           setIsSidebarOpen={setIsSidebarOpen}
         />
@@ -192,7 +143,7 @@ const ChatPage = () => {
               <p>Select a chat or start a new one.</p>
             </div>
           )}
-          {error && <p className="text-red-500 text-center mt-4">{error}</p>}
+          {(chatsError || historyError) && <p className="text-red-500 text-center mt-4">{chatsError || historyError}</p>}
         </main>
       </div>
     </div>
