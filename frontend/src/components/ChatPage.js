@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
-import { sendMessage } from '../api/chat';
+import { sendMessage, uploadFile } from '../api/chat';
 import ChatHistory from './ChatHistory';
 import ChatInput from './ChatInput';
 import Navbar from './Navbar';
@@ -91,6 +91,19 @@ const ChatPage = () => {
     }
   };
 
+  const handleFileUpload = async (file) => {
+    if (!selectedChatId) {
+      alert("Please select a chat before uploading a file.");
+      return;
+    }
+    try {
+      await uploadFile(selectedChatId, file);
+      alert("File uploaded and processed successfully!");
+    } catch (err) {
+      console.error('Failed to upload file:', err);
+      alert("Failed to upload file.");
+    }
+  };
   const createNewChat = async () => {
     const newChat = await handleCreateNewChat();
     if (newChat) {
@@ -135,8 +148,8 @@ const ChatPage = () => {
                   {selectedChat?.title || 'Chat'}
                 </h2>
               </div>
-              <ChatHistory history={chatHistory} isLoading={isLoading} />
-              <ChatInput onSendMessage={handleSendMessage} isLoading={isLoading} />
+              <ChatHistory history={chatHistory} isLoading={isLoading}/>
+              <ChatInput onSendMessage={handleSendMessage} isLoading={isLoading} onFileUpload={handleFileUpload} selectedChatId={selectedChatId}/>
             </>
           ) : (
             <div className="flex flex-col justify-center items-center h-full text-gray-400 text-xl">

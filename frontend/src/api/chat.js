@@ -42,6 +42,17 @@ export const sendMessage = (token, chatId, message) => {
   });
 };
 
+export const uploadFile = async (chatId, file) => {
+  const formData = new FormData();
+  formData.append('file', file);
+
+  const response = await api.post(`/chats/${chatId}/upload`, formData, {
+    headers: {
+      'Content-Type': 'multipart/form-data',
+    },
+  });
+  return response.data;
+};
 export const renameChat = async (chatId, newTitle) => {
   const response = await api.patch(`/chats/${chatId}`, { title: newTitle });
   return response.data;

@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
 import { IoSendSharp } from 'react-icons/io5';
+import { FaPaperclip } from 'react-icons/fa';
 
-const ChatInput = ({ onSendMessage, isLoading }) => {
+const ChatInput = ({ onSendMessage, isLoading, onFileUpload, selectedChatId }) => {
   const [question, setQuestion] = useState('');
 
   const handleSubmit = (e) => {
@@ -12,8 +13,19 @@ const ChatInput = ({ onSendMessage, isLoading }) => {
     }
   };
 
+  const handleFileChange = (event) => {
+    const file = event.target.files[0];
+    if (file) {
+      onFileUpload(file);
+    }
+  };
+
   return (
     <form className="flex items-center gap-4 p-6 bg-white dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700" onSubmit={handleSubmit}>
+      <label htmlFor="file-upload" className="cursor-pointer">
+        <FaPaperclip className="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300 text-2xl" />
+      </label>
+      <input id="file-upload" type="file" className="hidden" onChange={handleFileChange} disabled={!selectedChatId} />
       <input
         className="flex-grow p-4 rounded-3xl border border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-gray-200 placeholder-gray-500 focus:outline-none focus:border-blue-500 dark:focus:border-blue-400"
         type="text"
