@@ -14,7 +14,7 @@ from backend.app.db.session import get_db
 load_dotenv()
 SECRET_KEY = os.getenv("SECRET_KEY")
 ALGORITHM = "HS256"
-ACCESS_TOKEN_EXPIRE_MINUTES = 30
+ACCESS_TOKEN_EXPIRE_MINUTES = 120
 
 if not SECRET_KEY:
     raise ValueError("No SECRET_KEY set for this application in .env file")
