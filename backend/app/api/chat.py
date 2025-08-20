@@ -1,6 +1,7 @@
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, status, File, UploadFile
 from starlette.responses import StreamingResponse
-
+import os
+import shutil
 from backend.app.db.session import get_db
 from backend.app.schemas.message import MessageCreate
 
@@ -10,7 +11,7 @@ from dotenv import load_dotenv
 from backend.app.core.security import get_current_user
 from backend.app.models.user import User
 from backend.app.schemas.chat import ChatCreateResponse, ChatOut, ChatTitleUpdate, ChatMessageOut
-from backend.app.services import chat_service, message_service, llm_service
+from backend.app.services import chat_service, message_service, llm_service, rag_service
 
 from typing import List
 
@@ -37,6 +38,16 @@ async def rename_chat(chat_id:str, title:ChatTitleUpdate, db: Session= Depends(g
 async def delete_chat(chat_id: str,db: Session= Depends(get_db), current_user: User= Depends(get_current_user)):
     chat_service.delete_chat(chat_id,current_user.id, db)
     return
+
+@router.post("/chats/{chat_id}/upload", status_code=status.HTTP_200_OK)
+async def upload_document_for_chat(chat_id: str, file: UploadFile = File(...), current_user: User = Depends(get_current_user)):
+    upload_dir = "./uploaded_files"
+    os.makedirs(upload_dir, exist_ok=True)
+    file_path = os.path.join(upload_dir, file.filename)
+    with open(file_path, "wb") as buffer:
+        shutil.copyfileobj(file.file, buffer)
+    rag_service.process_and_store_document(file_path)
+    return {"filename": file.filename, "chat_id": chat_id, "message": "File uploaded and processed."}
 
 @router.post("/chats/{chat_id}/message", status_code=status.HTTP_200_OK)
 async def chat(chat_id:str ,message: MessageCreate, db: Session = Depends(get_db),current_user: User = Depends(get_current_user)):
