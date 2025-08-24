@@ -1,32 +1,25 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { MicVAD, utils } from '@ricky0123/vad-web';
 import { IoSendSharp } from 'react-icons/io5';
 import { FaPaperclip, FaMicrophone } from 'react-icons/fa';
 
 const ChatInput = ({ onSendMessage, isLoading, onFileUpload, selectedChatId }) => {
   const [question, setQuestion] = useState('');
   const [isListening, setIsListening] = useState(false);
-
+  const [isSpeaking, setIsSpeaking] = useState(false);
 
   const recognitionRef = useRef(null);
+  const vadRef = useRef(null);
 
-
+  // Initialize SpeechRecognition once
   useEffect(() => {
     if ('SpeechRecognition' in window || 'webkitSpeechRecognition' in window) {
       const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
       recognitionRef.current = new SpeechRecognition();
       const mic = recognitionRef.current;
-
-      mic.continuous = true;
+      mic.continuous = false; // We will manually control start/stop
       mic.interimResults = true;
       mic.lang = 'en-US';
-
-      mic.onstart = () => {
-        setIsListening(true);
-      };
-
-      mic.onend = () => {
-        setIsListening(false);
-      };
 
       mic.onresult = (event) => {
         const transcript = Array.from(event.results)
@@ -38,28 +31,57 @@ const ChatInput = ({ onSendMessage, isLoading, onFileUpload, selectedChatId }) =
 
       mic.onerror = (event) => {
         console.error('Speech recognition error:', event.error);
-        setIsListening(false);
       };
     }
   }, []);
 
-  const toggleListening = () => {
-    if (!recognitionRef.current) return;
-
-    if (isListening) {
-      recognitionRef.current.stop();
-    } else {
-      setQuestion('');
-      recognitionRef.current.start();
+  const startVAD = async () => {
+    try {
+      const vad = await MicVAD.new({
+        onSpeechStart: () => {
+          setIsSpeaking(true);
+          recognitionRef.current.start();
+        },
+        onSpeechEnd: (audio) => {
+          setIsSpeaking(false);
+          recognitionRef.current.stop();
+          // The final transcript is already in the `question` state
+          // We use a small timeout to ensure the final result is processed before submitting
+          setTimeout(() => {
+            document.querySelector('form').requestSubmit();
+          }, 100);
+        },
+      });
+      vadRef.current = vad;
+      vad.start();
+      setIsListening(true);
+    } catch (e) {
+      console.error("Failed to start VAD", e);
     }
   };
 
+  const stopVAD = () => {
+    if (vadRef.current) {
+      vadRef.current.destroy();
+      vadRef.current = null;
+    }
+    if (recognitionRef.current) {
+      recognitionRef.current.stop();
+    }
+    setIsListening(false);
+    setIsSpeaking(false);
+  };
+
+  const toggleListening = () => {
+    if (isListening) {
+      stopVAD();
+    } else {
+      startVAD();
+    }
+  };
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    if (isListening) {
-      recognitionRef.current.stop();
-    }
     if (question.trim() && !isLoading) {
       onSendMessage(question);
       setQuestion('');
@@ -80,7 +102,13 @@ const ChatInput = ({ onSendMessage, isLoading, onFileUpload, selectedChatId }) =
       </label>
       <input id="file-upload" type="file" className="hidden" onChange={handleFileChange} disabled={!selectedChatId} />
        {recognitionRef.current && (
-        <button type="button" onClick={toggleListening} className={`p-2 rounded-full ${isListening ? 'bg-red-500 text-white' : 'bg-gray-200 dark:bg-gray-700'}`}>
+        <button
+          type="button"
+          onClick={toggleListening}
+          className={`p-3 rounded-full transition-colors ${
+            isListening ? (isSpeaking ? 'bg-green-500 text-white animate-pulse' : 'bg-red-500 text-white') : 'bg-gray-200 dark:bg-gray-700'
+          }`}
+        >
           <FaMicrophone />
         </button>
       )}
@@ -89,7 +117,7 @@ const ChatInput = ({ onSendMessage, isLoading, onFileUpload, selectedChatId }) =
         type="text"
         value={question}
         onChange={(e) => setQuestion(e.target.value)}
-        placeholder="Message Chatbot..."
+        placeholder={isListening ? (isSpeaking ? "Speaking..." : "Listening...") : "Message Chatbot..."}
         disabled={isLoading}
       />
       <button
