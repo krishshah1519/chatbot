@@ -5,6 +5,8 @@ from backend.app.schemas.chat import ChatMessageOut, ChatTitleUpdate, ChatOut
 from backend.app.models.chat import Chat
 from fastapi import HTTPException
 from typing import List
+
+
 def check_if_chat(chat):
     if not chat:
         raise HTTPException(status_code=404, detail="Chat not found")
