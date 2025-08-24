@@ -12,7 +12,7 @@ from backend.app.services.rag_service import get_retriever
 load_dotenv()
 model= ChatGoogleGenerativeAI(
     model="gemini-2.5-flash-lite",
-    streaming=True,
+    model_kwargs={"streaming": True},
     convert_system_message_to_human=True
 )
 
@@ -47,8 +47,7 @@ async def get_llm_response(chat_history: list, question: str) -> AsyncGenerator[
         elif msg["role"] == "assistant":
             langchain_messages.append(AIMessage(content=msg["content"]))
     try:
-        # For RAG, we will just use the current question to retrieve context
-        # and not the entire history. You can adjust this as needed.
+
         async for chunk in rag_chain.astream(question):
             yield chunk
     except Exception as e:

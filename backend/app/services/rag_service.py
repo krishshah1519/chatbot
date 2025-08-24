@@ -1,10 +1,10 @@
-from langchain_community.vectorstores import Chroma
+from langchain_chroma import Chroma
 from langchain_community.document_loaders import PyPDFLoader
 from langchain_text_splitters import RecursiveCharacterTextSplitter
 from langchain_google_genai import GoogleGenerativeAIEmbeddings
 import os
 
-# Ensure you have a GOOGLE_API_KEY in your .env file
+
 embeddings = GoogleGenerativeAIEmbeddings(model="models/embedding-001")
 vector_store = Chroma(embedding_function=embeddings, persist_directory="./chroma_db")
 
