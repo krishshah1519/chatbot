@@ -12,6 +12,17 @@ const AuthPage = () => {
   const { login } = useAuth();
   const navigate = useNavigate();
 
+  const handleAuthError = (err) => {
+
+    if (err.response) {
+      setError(err.response.data.detail || 'An unknown server error occurred.');
+    } else if (err.request) {
+      setError('Could not connect to the server. Please check your network.');
+    } else {
+      setError('An unexpected error occurred. Please try again.');
+    }
+    console.error(err);
+  };
   const handleLogin = async (username, password) => {
     setError('');
     try {
