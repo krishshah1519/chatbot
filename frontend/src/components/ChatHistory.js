@@ -12,13 +12,19 @@ const ChatHistory = ({ history, isLoading }) => {
     }, 100);
   }, [history]);
 
-  // Create a component for the "Thinking..." animation to keep the JSX clean
-  const ThinkingAnimation = () => (
-    <div className="p-4 pt-0">
-      <div className="wavy-thinking-text">
-        {'Thinking...'.split('').map((letter, index) => (
-          <span key={index} style={{'--i': index + 1}}>{letter}</span>
-        ))}
+
+  const formatTimestamp = (timestamp) => {
+    if (!timestamp) return '';
+    const date = new Date(timestamp);
+    return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+  };
+
+  const Animation = () => (
+    <div className="p-4 pt-2">
+      <div className="pulsing-dots">
+        <span className="dot"></span>
+        <span className="dot"></span>
+        <span className="dot"></span>
       </div>
     </div>
   );
@@ -45,9 +51,17 @@ const ChatHistory = ({ history, isLoading }) => {
             </ReactMarkdown>
           </div>
 
-          {/* Conditionally render the new animation */}
+          {msg.created_at && (
+            <span className={`text-xs px-4 pb-2 ${
+              msg.sender === 'user' ? 'text-blue-200 text-right' : 'text-gray-400 text-left'
+            }`}>
+              {formatTimestamp(msg.created_at)}
+            </span>
+          )}
+
+
           {msg.sender === 'assistant' && isLoading && index === history.length - 1 && !msg.message && (
-            <ThinkingAnimation />
+            <Animation />
           )}
         </div>
       ))}
