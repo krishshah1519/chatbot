@@ -13,7 +13,6 @@ const AuthPage = () => {
   const navigate = useNavigate();
 
   const handleAuthError = (err) => {
-
     if (err.response) {
       setError(err.response.data.detail || 'An unknown server error occurred.');
     } else if (err.request) {

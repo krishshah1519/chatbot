@@ -21,20 +21,37 @@ const ChatPage = () => {
     }
   }, [chats, selectedChatId]);
 
+  const playAudio = async (text) => {
+    try {
+      const response = await fetch(`${process.env.REACT_APP_API_URL}/tts?text=${encodeURIComponent(text)}`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+      });
+      const blob = await response.blob();
+      const url = URL.createObjectURL(blob);
+      const audio = new Audio(url);
+      audio.play();
+    } catch (error) {
+      console.error('Error playing audio:', error);
+    }
+  };
+
+
   const handleSendMessage = async (message) => {
     if (!message.trim() || isLoading || !selectedChatId) return;
 
     const tempUserMessageId = `user-${Date.now()}`;
     const tempBotMessageId = `bot-${Date.now()}`;
 
-    // Add user message and an empty placeholder for the bot's response
     setChatHistory(prev => [
       ...prev,
       { id: tempUserMessageId, sender: 'user', message: message },
       { id: tempBotMessageId, sender: 'assistant', message: '' }
     ]);
 
-    // Set loading state to true immediately
     setIsLoading(true);
 
     try {
@@ -46,17 +63,20 @@ const ChatPage = () => {
 
       const reader = response.body.getReader();
       const decoder = new TextDecoder();
+      let fullResponse = '';
 
       const readStream = async () => {
         const { done, value } = await reader.read();
 
         if (done) {
           setIsLoading(false);
-          refetchChats(); // Refetch chats to update the order
+          refetchChats();
+          playAudio(fullResponse); // Play the full response at the end
           return;
         }
 
         const chunk = decoder.decode(value, { stream: true });
+        fullResponse += chunk;
 
         setChatHistory(prevHistory => {
           const newHistory = [...prevHistory];
@@ -86,10 +106,10 @@ const ChatPage = () => {
         }
         return newHistory;
       });
-      // Ensure loading is turned off in case of an error
       setIsLoading(false);
     }
   };
+
 
   const handleFileUpload = async (file) => {
     if (!selectedChatId) {
