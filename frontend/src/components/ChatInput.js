@@ -3,10 +3,20 @@ import { MicVAD, utils } from '@ricky0123/vad-web';
 import { IoSendSharp } from 'react-icons/io5';
 import { FaPaperclip, FaMicrophone } from 'react-icons/fa';
 
+
+const VAD_STATE = {
+  IDLE: 'idle',
+  INITIALIZING: 'initializing',
+  LISTENING: 'listening',
+  SPEAKING: 'speaking',
+  ERROR: 'error',
+};
+
 const ChatInput = ({ onSendMessage, isLoading, onFileUpload, selectedChatId, onListenStart }) => {
   const [question, setQuestion] = useState('');
   const [isListening, setIsListening] = useState(false);
   const [isSpeaking, setIsSpeaking] = useState(false);
+  const [vadState, setVadState] = useState(VAD_STATE.IDLE);
 
   const recognitionRef = useRef(null);
   const vadRef = useRef(null);
@@ -19,22 +29,22 @@ const ChatInput = ({ onSendMessage, isLoading, onFileUpload, selectedChatId, onL
       const mic = recognitionRef.current;
       mic.continuous = false;
       mic.interimResults = true;
+
       mic.lang = 'en-US';
 
       mic.onresult = (event) => {
         const transcript = Array.from(event.results)
-          .map((result) => result[0])
-          .map((result) => result.transcript)
+          .map((result) => result[0].transcript)
           .join('');
         setQuestion(transcript);
       };
 
       mic.onerror = (event) => {
         console.error('Speech recognition error:', event.error);
-        stopVAD(); // Stop on error
+        stopVAD();
       };
 
-      // When recognition ends, ensure VAD is also stopped
+
       mic.onend = () => {
         stopVAD();
       };
@@ -42,12 +52,14 @@ const ChatInput = ({ onSendMessage, isLoading, onFileUpload, selectedChatId, onL
   }, []);
 
   const startVAD = async () => {
+    setVadState(VAD_STATE.INITIALIZING);
     if (onListenStart) {
-      onListenStart(); // Call the interruption handler
+      onListenStart();
     }
     try {
       const vad = await MicVAD.new({
         onSpeechStart: () => {
+          setVadState(VAD_STATE.SPEAKING);
           if (!isSpeakingRef.current) {
             isSpeakingRef.current = true;
             setIsSpeaking(true);
@@ -55,6 +67,7 @@ const ChatInput = ({ onSendMessage, isLoading, onFileUpload, selectedChatId, onL
           }
         },
         onSpeechEnd: (audio) => {
+          setVadState(VAD_STATE.LISTENING);
           if (isSpeakingRef.current) {
             recognitionRef.current.stop();
             isSpeakingRef.current = false;
@@ -62,11 +75,14 @@ const ChatInput = ({ onSendMessage, isLoading, onFileUpload, selectedChatId, onL
           }
         },
       });
+
       vadRef.current = vad;
       vad.start();
       setIsListening(true);
+      setVadState(VAD_STATE.LISTENING);
     } catch (e) {
       console.error("Failed to start VAD", e);
+      setVadState(VAD_STATE.ERROR);
     }
   };
 
@@ -82,8 +98,18 @@ const ChatInput = ({ onSendMessage, isLoading, onFileUpload, selectedChatId, onL
       isSpeakingRef.current = false;
       setIsListening(false);
       setIsSpeaking(false);
+      setVadState(VAD_STATE.IDLE);
     }
   };
+
+
+  useEffect(() => {
+    return () => {
+      if (vadRef.current) {
+        vadRef.current.destroy();
+      }
+    };
+  }, []);
 
   const toggleListening = () => {
     if (isListening) {
@@ -95,10 +121,11 @@ const ChatInput = ({ onSendMessage, isLoading, onFileUpload, selectedChatId, onL
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    stopVAD(); // Stop listening when message is sent
+    stopVAD();
     if (question.trim() && !isLoading) {
       onSendMessage(question);
       setQuestion('');
+      stopVAD();
     }
   };
 
@@ -106,6 +133,17 @@ const ChatInput = ({ onSendMessage, isLoading, onFileUpload, selectedChatId, onL
     const file = event.target.files[0];
     if (file) {
       onFileUpload(file);
+    }
+  };
+
+  const getMicrophoneButtonClass = () => {
+    switch (vadState) {
+      case VAD_STATE.LISTENING:
+        return 'bg-red-500 text-white';
+      case VAD_STATE.SPEAKING:
+        return 'bg-green-500 text-white animate-pulse';
+      default:
+        return 'bg-gray-200 dark:bg-gray-700';
     }
   };
 
