@@ -48,12 +48,12 @@ const ChatMessage = memo(({ message, isStreaming }) => {
     return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
   };
 
-  // NEW: Define the loading indicator component
-  const LoadingIndicator = () => (
-    <div className="bouncing-loader">
-      <div className="bounce1"></div>
-      <div className="bounce2"></div>
-      <div className="bounce3"></div>
+
+const LoadingIndicator = () => (
+    <div className="pulsing-dots">
+      <div className="dot"></div>
+      <div className="dot"></div>
+      <div className="dot"></div>
     </div>
   );
 
