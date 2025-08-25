@@ -71,7 +71,7 @@ const ChatPage = () => {
         if (done) {
           setIsLoading(false);
           refetchChats();
-          playAudio(fullResponse); // Play the full response at the end
+          playAudio(fullResponse);
           return;
         }
 

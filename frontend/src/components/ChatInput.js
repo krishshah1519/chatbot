@@ -12,13 +12,12 @@ const ChatInput = ({ onSendMessage, isLoading, onFileUpload, selectedChatId }) =
   const vadRef = useRef(null);
   const isSpeakingRef = useRef(false);
 
-  // Initialize SpeechRecognition once
   useEffect(() => {
     if ('SpeechRecognition' in window || 'webkitSpeechRecognition' in window) {
       const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
       recognitionRef.current = new SpeechRecognition();
       const mic = recognitionRef.current;
-      mic.continuous = false; // We will manually control start/stop
+      mic.continuous = false;
       mic.interimResults = true;
       mic.lang = 'en-US';
 
@@ -32,6 +31,12 @@ const ChatInput = ({ onSendMessage, isLoading, onFileUpload, selectedChatId }) =
 
       mic.onerror = (event) => {
         console.error('Speech recognition error:', event.error);
+        stopVAD(); // Stop on error
+      };
+
+      // When recognition ends, ensure VAD is also stopped
+      mic.onend = () => {
+        stopVAD();
       };
     }
   }, []);
@@ -40,7 +45,6 @@ const ChatInput = ({ onSendMessage, isLoading, onFileUpload, selectedChatId }) =
     try {
       const vad = await MicVAD.new({
         onSpeechStart: () => {
-
           if (!isSpeakingRef.current) {
             isSpeakingRef.current = true;
             setIsSpeaking(true);
@@ -48,13 +52,11 @@ const ChatInput = ({ onSendMessage, isLoading, onFileUpload, selectedChatId }) =
           }
         },
         onSpeechEnd: (audio) => {
-          isSpeakingRef.current = false;
-          setIsSpeaking(false);
-          recognitionRef.current.stop();
-
-          setTimeout(() => {
-            document.querySelector('form').requestSubmit();
-          }, 100);
+          if (isSpeakingRef.current) {
+            recognitionRef.current.stop();
+            isSpeakingRef.current = false;
+            setIsSpeaking(false);
+          }
         },
       });
       vadRef.current = vad;
@@ -66,16 +68,18 @@ const ChatInput = ({ onSendMessage, isLoading, onFileUpload, selectedChatId }) =
   };
 
   const stopVAD = () => {
-    if (vadRef.current) {
-      vadRef.current.destroy();
-      vadRef.current = null;
+    if (isListening) {
+      if (vadRef.current) {
+        vadRef.current.destroy();
+        vadRef.current = null;
+      }
+      if (recognitionRef.current) {
+        recognitionRef.current.stop();
+      }
+      isSpeakingRef.current = false;
+      setIsListening(false);
+      setIsSpeaking(false);
     }
-    if (recognitionRef.current) {
-      recognitionRef.current.stop();
-    }
-    isSpeakingRef.current = false;
-    setIsListening(false);
-    setIsSpeaking(false);
   };
 
   const toggleListening = () => {
@@ -88,6 +92,7 @@ const ChatInput = ({ onSendMessage, isLoading, onFileUpload, selectedChatId }) =
 
   const handleSubmit = (e) => {
     e.preventDefault();
+    stopVAD(); // Stop listening when message is sent
     if (question.trim() && !isLoading) {
       onSendMessage(question);
       setQuestion('');
