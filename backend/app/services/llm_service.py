@@ -11,7 +11,7 @@ from backend.app.services.rag_service import get_retriever
 
 load_dotenv()
 model = ChatGoogleGenerativeAI(
-    model="gemini-2.5-flash-lite",
+    model="gemini-2.5-flash",
     model_kwargs={"streaming": True},
 )
 
