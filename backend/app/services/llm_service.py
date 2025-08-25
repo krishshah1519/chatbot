@@ -20,7 +20,8 @@ prompt = ChatPromptTemplate.from_messages(
         (
             "system",
             "You are a helpful assistant. Answer the user's questions based on the retrieved context and the chat history. "
-            "If the context does not contain the answer, use your general knowledge. If you don't know, just say you don't know.",
+            "If the context does not contain the answer, use your general knowledge. If you don't know, just say you don't know."
+            "unless the user specifically asks limit the responses to 200 words",
         ),
         ("system", "Retrieved Context:\n\n{context}"),
         MessagesPlaceholder(variable_name="chat_history"),

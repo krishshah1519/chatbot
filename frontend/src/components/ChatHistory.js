@@ -70,4 +70,4 @@ const ChatHistory = ({ history, isLoading }) => {
   );
 };
 
-export default ChatHistory;
+export default React.memo(ChatHistory);

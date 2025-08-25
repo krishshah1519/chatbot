@@ -8,7 +8,8 @@ router = APIRouter()
 @router.post("/tts")
 async def text_to_speech(text: str):
     try:
-        tts = gTTS(text=text, lang='en')
+
+        tts = gTTS(text=text, lang='en', tld='co.uk')
         fp = io.BytesIO()
         tts.write_to_fp(fp)
         fp.seek(0)

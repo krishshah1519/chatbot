@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { sendMessage, uploadFile } from '../api/chat';
 import ChatHistory from './ChatHistory';
@@ -14,6 +14,7 @@ const ChatPage = () => {
   const { chats, error: chatsError, handleCreateNewChat, handleDeleteChat, handleRenameChat, refetchChats } = useChats();
   const { chatHistory, setChatHistory, isLoading, setIsLoading, error: historyError } = useChatHistory(selectedChatId);
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
+  const audioRef = useRef(null);
 
   useEffect(() => {
     if (chats.length > 0 && !selectedChatId) {
@@ -21,7 +22,16 @@ const ChatPage = () => {
     }
   }, [chats, selectedChatId]);
 
-  const playAudio = async (text) => {
+  const stopCurrentAudio = useCallback(() => {
+    if (audioRef.current) {
+      audioRef.current.pause();
+      audioRef.current.currentTime = 0;
+      audioRef.current = null;
+    }
+  }, []);
+
+  const playAudio = useCallback(async (text) => {
+    stopCurrentAudio();
     try {
       const response = await fetch(`${process.env.REACT_APP_API_URL}/tts?text=${encodeURIComponent(text)}`, {
         method: 'POST',
@@ -33,15 +43,26 @@ const ChatPage = () => {
       const blob = await response.blob();
       const url = URL.createObjectURL(blob);
       const audio = new Audio(url);
-      audio.play();
+      audioRef.current = audio;
+
+      const playPromise = audio.play();
+      if (playPromise !== undefined) {
+        playPromise.catch(error => {
+          if (error.name !== 'AbortError') {
+            console.error('Audio playback error:', error);
+          }
+        });
+      }
     } catch (error) {
-      console.error('Error playing audio:', error);
+      console.error('Error fetching or creating audio:', error);
     }
-  };
+  }, [token, stopCurrentAudio]);
 
 
-  const handleSendMessage = async (message) => {
+  const handleSendMessage = useCallback(async (message) => {
     if (!message.trim() || isLoading || !selectedChatId) return;
+
+    stopCurrentAudio();
 
     const tempUserMessageId = `user-${Date.now()}`;
     const tempBotMessageId = `bot-${Date.now()}`;
@@ -108,10 +129,10 @@ const ChatPage = () => {
       });
       setIsLoading(false);
     }
-  };
+  }, [isLoading, selectedChatId, token, playAudio, refetchChats, setChatHistory, setIsLoading, stopCurrentAudio]);
 
 
-  const handleFileUpload = async (file) => {
+  const handleFileUpload = useCallback(async (file) => {
     if (!selectedChatId) {
       alert("Please select a chat before uploading a file.");
       return;
@@ -123,16 +144,17 @@ const ChatPage = () => {
       console.error('Failed to upload file:', err);
       alert("Failed to upload file.");
     }
-  };
-  const createNewChat = async () => {
+  }, [selectedChatId]);
+
+  const createNewChat = useCallback(async () => {
     const newChat = await handleCreateNewChat();
     if (newChat) {
       setSelectedChatId(newChat.id);
       setChatHistory([]);
     }
-  };
+  }, [handleCreateNewChat, setChatHistory]);
 
-  const deleteExistingChat = async (chatId) => {
+  const deleteExistingChat = useCallback(async (chatId) => {
     const updatedChats = await handleDeleteChat(chatId);
     if (selectedChatId === chatId) {
       if (updatedChats && updatedChats.length > 0) {
@@ -142,7 +164,7 @@ const ChatPage = () => {
         setChatHistory([]);
       }
     }
-  };
+  }, [handleDeleteChat, selectedChatId, setChatHistory]);
 
   const selectedChat = chats.find(chat => chat.id === selectedChatId);
 
@@ -169,7 +191,7 @@ const ChatPage = () => {
                 </h2>
               </div>
               <ChatHistory history={chatHistory} isLoading={isLoading}/>
-              <ChatInput onSendMessage={handleSendMessage} isLoading={isLoading} onFileUpload={handleFileUpload} selectedChatId={selectedChatId}/>
+              <ChatInput onSendMessage={handleSendMessage} isLoading={isLoading} onFileUpload={handleFileUpload} selectedChatId={selectedChatId} onListenStart={stopCurrentAudio}/>
             </>
           ) : (
             <div className="flex flex-col justify-center items-center h-full text-gray-400 text-xl">

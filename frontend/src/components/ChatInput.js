@@ -3,7 +3,7 @@ import { MicVAD, utils } from '@ricky0123/vad-web';
 import { IoSendSharp } from 'react-icons/io5';
 import { FaPaperclip, FaMicrophone } from 'react-icons/fa';
 
-const ChatInput = ({ onSendMessage, isLoading, onFileUpload, selectedChatId }) => {
+const ChatInput = ({ onSendMessage, isLoading, onFileUpload, selectedChatId, onListenStart }) => {
   const [question, setQuestion] = useState('');
   const [isListening, setIsListening] = useState(false);
   const [isSpeaking, setIsSpeaking] = useState(false);
@@ -42,6 +42,9 @@ const ChatInput = ({ onSendMessage, isLoading, onFileUpload, selectedChatId }) =
   }, []);
 
   const startVAD = async () => {
+    if (onListenStart) {
+      onListenStart(); // Call the interruption handler
+    }
     try {
       const vad = await MicVAD.new({
         onSpeechStart: () => {
@@ -141,4 +144,4 @@ const ChatInput = ({ onSendMessage, isLoading, onFileUpload, selectedChatId }) =
   );
 };
 
-export default ChatInput;
+export default React.memo(ChatInput);
