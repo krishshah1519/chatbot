@@ -10,6 +10,7 @@ const ChatInput = ({ onSendMessage, isLoading, onFileUpload, selectedChatId }) =
 
   const recognitionRef = useRef(null);
   const vadRef = useRef(null);
+  const isSpeakingRef = useRef(false);
 
   // Initialize SpeechRecognition once
   useEffect(() => {
@@ -39,14 +40,18 @@ const ChatInput = ({ onSendMessage, isLoading, onFileUpload, selectedChatId }) =
     try {
       const vad = await MicVAD.new({
         onSpeechStart: () => {
-          setIsSpeaking(true);
-          recognitionRef.current.start();
+
+          if (!isSpeakingRef.current) {
+            isSpeakingRef.current = true;
+            setIsSpeaking(true);
+            recognitionRef.current.start();
+          }
         },
         onSpeechEnd: (audio) => {
+          isSpeakingRef.current = false;
           setIsSpeaking(false);
           recognitionRef.current.stop();
-          // The final transcript is already in the `question` state
-          // We use a small timeout to ensure the final result is processed before submitting
+
           setTimeout(() => {
             document.querySelector('form').requestSubmit();
           }, 100);
@@ -68,6 +73,7 @@ const ChatInput = ({ onSendMessage, isLoading, onFileUpload, selectedChatId }) =
     if (recognitionRef.current) {
       recognitionRef.current.stop();
     }
+    isSpeakingRef.current = false;
     setIsListening(false);
     setIsSpeaking(false);
   };

@@ -1,5 +1,5 @@
 from typing import AsyncGenerator
-from operator import itemgetter  # A cleaner way to get items from the input dict
+from operator import itemgetter
 from langchain_core.messages import HumanMessage, AIMessage
 from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
 from langchain_core.runnables import RunnablePassthrough
@@ -12,43 +12,37 @@ from backend.app.services.rag_service import get_retriever
 load_dotenv()
 model = ChatGoogleGenerativeAI(
     model="gemini-2.5-flash-lite",
-    streaming=True
+    model_kwargs={"streaming": True},
 )
 
 prompt = ChatPromptTemplate.from_messages(
     [
         (
             "system",
-
             "You are a helpful assistant. Answer the user's questions based on the retrieved context and the chat history. "
             "If the context does not contain the answer, use your general knowledge. If you don't know, just say you don't know.",
         ),
-        # A new placeholder to show the model the retrieved documents
         ("system", "Retrieved Context:\n\n{context}"),
         MessagesPlaceholder(variable_name="chat_history"),
-        # The final instruction is now the user's actual question
         ("user", "{question}"),
     ]
 )
 
-# ✅ Corrected retrieval chain
-# This chain now correctly fetches context and passes all needed variables to the prompt.
-retrieval_chain = (
-    {
-        # Retrieve context based on the question
-        "context": itemgetter("question") | get_retriever(),
-        # Pass the original question through
-        "question": itemgetter("question"),
-        # Pass the chat history through
-        "chat_history": itemgetter("chat_history"),
-    }
-    | prompt
-    | model
-    | StrOutputParser()
-)
+def get_retrieval_chain(chat_id: str):
+    """Creates a retrieval chain for a specific chat."""
+    retriever = get_retriever(chat_id)
+    return (
+        {
+            "context": itemgetter("question") | retriever,
+            "question": itemgetter("question"),
+            "chat_history": itemgetter("chat_history"),
+        }
+        | prompt
+        | model
+        | StrOutputParser()
+    )
 
-
-async def get_llm_response(chat_history: list, question: str) -> AsyncGenerator[str, None]:
+async def get_llm_response(chat_history: list, question: str, chat_id: str) -> AsyncGenerator[str, None]:
     """
     Get a streaming response from the LLM.
     """
@@ -60,7 +54,7 @@ async def get_llm_response(chat_history: list, question: str) -> AsyncGenerator[
             langchain_messages.append(AIMessage(content=msg["content"]))
 
     try:
-        # The input dictionary now matches what the chain expects
+        retrieval_chain = get_retrieval_chain(chat_id)
         async for chunk in retrieval_chain.astream(
             {"question": question, "chat_history": langchain_messages}
         ):

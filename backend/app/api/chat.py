@@ -46,7 +46,7 @@ async def upload_document_for_chat(chat_id: str, file: UploadFile = File(...), c
     file_path = os.path.join(upload_dir, file.filename)
     with open(file_path, "wb") as buffer:
         shutil.copyfileobj(file.file, buffer)
-    rag_service.process_and_store_document(file_path)
+    rag_service.process_and_store_document(file_path, chat_id) # Pass chat_id here
     return {"filename": file.filename, "chat_id": chat_id, "message": "File uploaded and processed."}
 
 @router.post("/chats/{chat_id}/message", status_code=status.HTTP_200_OK)
@@ -65,7 +65,7 @@ async def chat(chat_id:str ,message: MessageCreate, db: Session = Depends(get_db
         async def stream_and_save():
             full_response = ""
             try:
-                response_generator = llm_service.get_llm_response(formatted_history, user_question)
+                response_generator = llm_service.get_llm_response(formatted_history, user_question, chat_id)
                 async for chunk in response_generator:
                     full_response += chunk
                     yield chunk
