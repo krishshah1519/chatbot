@@ -4,21 +4,27 @@ const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:8000';
 
 const api = axios.create({
   baseURL: API_URL,
+  withCredentials: true,
 });
 
-// This interceptor automatically adds the token to every request header
-api.interceptors.request.use((config) => {
-  const token = localStorage.getItem('token');
-  if (token) {
-    config.headers.Authorization = `Bearer ${token}`;
-  }
-  return config;
-});
+
 
 export const getChats = async () => {
   const response = await api.get('/chats');
   return response.data;
 };
+
+export const sendMessage = (chatId, message) => {
+  return fetch(`${API_URL}/chats/${chatId}/message`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({ message }),
+    credentials: 'include',
+  });
+};
+
 
 export const createChat = async () => {
   const response = await api.post('/chats', {});
@@ -28,18 +34,6 @@ export const createChat = async () => {
 export const getChatHistory = async (chatId) => {
   const response = await api.get(`/chats/${chatId}`);
   return response.data;
-};
-
-// sendMessage still needs the token passed manually because it uses the Fetch API for streaming
-export const sendMessage = (token, chatId, message) => {
-  return fetch(`${API_URL}/chats/${chatId}/message`, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      Authorization: `Bearer ${token}`,
-    },
-    body: JSON.stringify({ message }),
-  });
 };
 
 export const uploadFile = async (chatId, file) => {

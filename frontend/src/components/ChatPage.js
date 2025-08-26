@@ -42,7 +42,7 @@ const ChatPage = () => {
     setIsLoading(true);
 
     try {
-      const response = await sendMessage(token, selectedChatId, message);
+      const response = await sendMessage( selectedChatId, message);
 
       if (!response.ok || !response.body) {
         throw new Error('Failed to get a response from the server.');
@@ -94,7 +94,7 @@ const ChatPage = () => {
       });
       setIsLoading(false);
     }
-  }, [isLoading, selectedChatId, token, refetchChats, setChatHistory, setIsLoading, stopCurrentAudio]);
+  }, [isLoading, selectedChatId, refetchChats, setChatHistory, setIsLoading, stopCurrentAudio]);
 
 
   const handleFileUpload = useCallback(async (file) => {

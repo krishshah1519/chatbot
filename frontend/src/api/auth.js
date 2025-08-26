@@ -5,7 +5,9 @@ export const login = async (username, password) => {
   const formData = new FormData();
   formData.append('username', username);
   formData.append('password', password);
-  const response = await axios.post(`${API_URL}/login`, formData);
+
+
+  const response = await axios.post(`${API_URL}/login`, formData, { withCredentials: true });
   return response.data;
 };
 

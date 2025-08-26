@@ -1,3 +1,4 @@
+
 import React, { createContext, useState, useContext, useEffect } from 'react';
 import { jwtDecode } from 'jwt-decode';
 import { login as loginApi } from '../api/auth';
@@ -5,7 +6,7 @@ import { login as loginApi } from '../api/auth';
 const AuthContext = createContext();
 
 export const AuthProvider = ({ children }) => {
-  const [token, setToken] = useState(localStorage.getItem('token'));
+  const [token, setToken] = useState(document.cookie.replace(/(?:(?:^|.*;\s*)token\s*=\s*([^;]*).*$)|^.*$/, "$1"));
   const [user, setUser] = useState(null);
 
   useEffect(() => {
@@ -25,13 +26,13 @@ export const AuthProvider = ({ children }) => {
     const decodedUser = jwtDecode(data.access_token);
     setToken(data.access_token);
     setUser(decodedUser);
-    localStorage.setItem('token', data.access_token);
+
   };
 
   const logout = () => {
     setToken(null);
     setUser(null);
-    localStorage.removeItem('token');
+    document.cookie = "token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
   };
 
   return (

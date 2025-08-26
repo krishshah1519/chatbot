@@ -1,11 +1,11 @@
+# backend/app/core/security.py
+
 import os
 from datetime import datetime, timedelta
-
 import jwt
 from dotenv import load_dotenv
-from fastapi import Depends, HTTPException, status
+from fastapi import Depends, HTTPException, status, Request # 1. Import Request
 from fastapi.security import OAuth2PasswordBearer
-
 from sqlalchemy.orm import Session
 from backend.app.services import user_service
 from backend.app.models.user import User
@@ -19,7 +19,6 @@ ACCESS_TOKEN_EXPIRE_MINUTES = 120
 if not SECRET_KEY:
     raise ValueError("No SECRET_KEY set for this application in .env file")
 
-
 def create_access_token(data: dict) -> str:
     to_encode = data.copy()
     expire = datetime.utcnow() + timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
@@ -28,7 +27,8 @@ def create_access_token(data: dict) -> str:
     return encoded_jwt
 
 
-oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/auth/token")
+def get_token_from_cookie(request: Request) -> str | None:
+    return request.cookies.get("token")
 
 credentials_exception = HTTPException(
     status_code=status.HTTP_401_UNAUTHORIZED,
@@ -37,13 +37,15 @@ credentials_exception = HTTPException(
 )
 
 
-async def get_current_user(token: str = Depends(oauth2_scheme), db: Session = Depends(get_db)) -> User:
+async def get_current_user(token: str = Depends(get_token_from_cookie), db: Session = Depends(get_db)) -> User:
+    if token is None:
+        raise credentials_exception
     try:
         payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
         username: str | None = payload.get("sub")
         if username is None:
             raise credentials_exception
-    except:
+    except jwt.PyJWTError:
         raise credentials_exception
 
     user = user_service.get_user_by_username(db, username=username)
