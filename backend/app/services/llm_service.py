@@ -8,10 +8,11 @@ from langchain_google_genai import ChatGoogleGenerativeAI
 from fastapi import HTTPException
 from dotenv import load_dotenv
 from backend.app.services.rag_service import get_retriever
+import os
 
 load_dotenv()
 model = ChatGoogleGenerativeAI(
-    model="gemini-2.5-flash",
+    model=os.getenv("GEMINI_MODEL", "gemini-2.5-flash-lite"),
     model_kwargs={"streaming": True},
 )
 

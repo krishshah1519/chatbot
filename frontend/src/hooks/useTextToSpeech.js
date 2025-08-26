@@ -1,4 +1,3 @@
-// A simplified example for useTextToSpeech.js
 import { useCallback, useEffect } from 'react';
 
 export const useTextToSpeech = () => {
@@ -14,8 +13,8 @@ export const useTextToSpeech = () => {
     const utterance = new SpeechSynthesisUtterance(text);
 
     // utterance.voice = window.speechSynthesis.getVoices()[0];
-     utterance.pitch = 10;
-     utterance.rate = .7;
+     utterance.pitch = 2;
+     utterance.rate = 1.3;
 
     window.speechSynthesis.speak(utterance);
   }, []);
@@ -26,7 +25,7 @@ export const useTextToSpeech = () => {
     }
   }, []);
 
-  // Ensure speech is cancelled on component unmount
+
   useEffect(() => stop, [stop]);
 
   return { play, stop };

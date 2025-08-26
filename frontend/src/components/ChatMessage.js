@@ -3,45 +3,34 @@ import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import CodeBlock from './CodeBlock';
 
-
-const ChatMessage = memo(({ message, isStreaming }) => { // Remove playAudio prop
+const ChatMessage = memo(({ message, isStreaming }) => {
   const [displayedMessage, setDisplayedMessage] = useState('');
-  const animationIntervalRef = useRef(null);
+  const animationFrameRef = useRef(null);
+  const textToStream = useRef(message.message);
+  const currentIndex = useRef(0);
 
   useEffect(() => {
-    if (!isStreaming) {
+    if (isStreaming) {
+      const animate = () => {
+        if (currentIndex.current < textToStream.current.length) {
+          setDisplayedMessage(
+            textToStream.current.substring(0, currentIndex.current + 1)
+          );
+          currentIndex.current++;
+          animationFrameRef.current = requestAnimationFrame(animate);
+        }
+      };
+      animationFrameRef.current = requestAnimationFrame(animate);
+    } else {
       setDisplayedMessage(message.message);
-      if (animationIntervalRef.current) {
-        clearInterval(animationIntervalRef.current);
-      }
-      return;
     }
-
-    if (displayedMessage === message.message) {
-      return;
-    }
-
-    if (animationIntervalRef.current) {
-      clearInterval(animationIntervalRef.current);
-    }
-
-    let currentIndex = displayedMessage.length;
-    animationIntervalRef.current = setInterval(() => {
-      if (currentIndex < message.message.length) {
-        setDisplayedMessage(message.message.substring(0, currentIndex + 1));
-        currentIndex++;
-      } else {
-        clearInterval(animationIntervalRef.current);
-        animationIntervalRef.current = null;
-      }
-    }, 15);
 
     return () => {
-      if (animationIntervalRef.current) {
-        clearInterval(animationIntervalRef.current);
+      if (animationFrameRef.current) {
+        cancelAnimationFrame(animationFrameRef.current);
       }
     };
-  }, [isStreaming, message.message, displayedMessage]);
+  }, [isStreaming, message.message]);
 
   const formatTimestamp = (timestamp) => {
     if (!timestamp) return '';
@@ -80,13 +69,14 @@ const ChatMessage = memo(({ message, isStreaming }) => { // Remove playAudio pro
             </ReactMarkdown>
           )}
         </div>
-
       </div>
 
       {message.created_at && (
         <span
           className={`text-xs px-4 pb-2 ${
-            message.sender === 'user' ? 'text-blue-200 text-right' : 'text-gray-400 text-left'
+            message.sender === 'user'
+              ? 'text-blue-200 text-right'
+              : 'text-gray-400 text-left'
           }`}
         >
           {formatTimestamp(message.created_at)}

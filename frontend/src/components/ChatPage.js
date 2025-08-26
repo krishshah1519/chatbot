@@ -57,7 +57,6 @@ const ChatPage = () => {
         if (done) {
           setIsLoading(false);
           refetchChats();
-          // *** ADD THIS LINE: Play the full response when the stream is complete ***
           playAudio(fullResponse);
           return;
         }
