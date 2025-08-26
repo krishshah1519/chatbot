@@ -2,9 +2,9 @@ import React, { useState, useEffect, useRef, memo } from 'react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import CodeBlock from './CodeBlock';
-import { FaPlay } from 'react-icons/fa';
 
-const ChatMessage = memo(({ message, isStreaming, playAudio }) => {
+
+const ChatMessage = memo(({ message, isStreaming }) => { // Remove playAudio prop
   const [displayedMessage, setDisplayedMessage] = useState('');
   const animationIntervalRef = useRef(null);
 
@@ -49,8 +49,7 @@ const ChatMessage = memo(({ message, isStreaming, playAudio }) => {
     return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
   };
 
-
-const LoadingIndicator = () => (
+  const LoadingIndicator = () => (
     <div className="pulsing-dots">
       <div className="dot"></div>
       <div className="dot"></div>
@@ -66,28 +65,23 @@ const LoadingIndicator = () => (
           : 'bg-white dark:bg-gray-800 text-gray-800 dark:text-gray-100 self-start rounded-xl rounded-bl-none'
       }`}
     >
-        <div className="flex items-start justify-between">
-            <div className="prose dark:prose-invert prose-sm p-4 max-w-none">
-                {message.sender === 'assistant' && isStreaming && !displayedMessage ? (
-                <LoadingIndicator />
-                ) : (
-                <ReactMarkdown
-                    remarkPlugins={[remarkGfm]}
-                    components={{
-                    code: CodeBlock,
-                    }}
-                >
-                    {displayedMessage || '\u00A0'}
-                </ReactMarkdown>
-                )}
-            </div>
-            {message.sender === 'assistant' && !isStreaming && (
-                <button onClick={() => playAudio(message.message)} className="p-2 m-2 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700">
-                    <FaPlay className="text-gray-500 dark:text-gray-400" />
-                </button>
-            )}
+      <div className="flex items-start justify-between">
+        <div className="prose dark:prose-invert prose-sm p-4 max-w-none">
+          {message.sender === 'assistant' && isStreaming && !displayedMessage ? (
+            <LoadingIndicator />
+          ) : (
+            <ReactMarkdown
+              remarkPlugins={[remarkGfm]}
+              components={{
+                code: CodeBlock,
+              }}
+            >
+              {displayedMessage || '\u00A0'}
+            </ReactMarkdown>
+          )}
         </div>
 
+      </div>
 
       {message.created_at && (
         <span

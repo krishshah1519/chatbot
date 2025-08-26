@@ -7,7 +7,7 @@ import Navbar from './Navbar';
 import ChatSidebar from './ChatSidebar';
 import { useChats } from '../hooks/useChats';
 import { useChatHistory } from '../hooks/useChatHistory';
-import { useTextToSpeech } from '../hooks/useTextToSpeech'; // Import the new hook
+import { useTextToSpeech } from '../hooks/useTextToSpeech';
 
 const ChatPage = () => {
   const { token } = useAuth();
@@ -15,7 +15,6 @@ const ChatPage = () => {
   const { chats, error: chatsError, handleCreateNewChat, handleDeleteChat, handleRenameChat, refetchChats } = useChats();
   const { chatHistory, setChatHistory, isLoading, setIsLoading, error: historyError } = useChatHistory(selectedChatId);
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
-
 
   const { play: playAudio, stop: stopCurrentAudio } = useTextToSpeech(token);
 
@@ -42,7 +41,7 @@ const ChatPage = () => {
     setIsLoading(true);
 
     try {
-      const response = await sendMessage( selectedChatId, message);
+      const response = await sendMessage(selectedChatId, message);
 
       if (!response.ok || !response.body) {
         throw new Error('Failed to get a response from the server.');
@@ -58,6 +57,8 @@ const ChatPage = () => {
         if (done) {
           setIsLoading(false);
           refetchChats();
+          // *** ADD THIS LINE: Play the full response when the stream is complete ***
+          playAudio(fullResponse);
           return;
         }
 
@@ -71,7 +72,7 @@ const ChatPage = () => {
           if (lastMessageIndex >= 0 && newHistory[lastMessageIndex].sender === 'assistant') {
             newHistory[lastMessageIndex] = {
               ...newHistory[lastMessageIndex],
-              message: newHistory[lastMessageIndex].message + chunk,
+              message: fullResponse,
             };
           }
           return newHistory;
@@ -94,8 +95,7 @@ const ChatPage = () => {
       });
       setIsLoading(false);
     }
-  }, [isLoading, selectedChatId, refetchChats, setChatHistory, setIsLoading, stopCurrentAudio]);
-
+  }, [isLoading, selectedChatId, refetchChats, setChatHistory, setIsLoading, stopCurrentAudio, playAudio]);
 
   const handleFileUpload = useCallback(async (file) => {
     if (!selectedChatId) {
@@ -155,7 +155,7 @@ const ChatPage = () => {
                   {selectedChat?.title || 'Chat'}
                 </h2>
               </div>
-              <ChatHistory history={chatHistory} isLoading={isLoading} playAudio={playAudio}/>
+              <ChatHistory history={chatHistory} isLoading={isLoading} />
               <ChatInput onSendMessage={handleSendMessage} isLoading={isLoading} onFileUpload={handleFileUpload} selectedChatId={selectedChatId}/>
             </>
           ) : (
