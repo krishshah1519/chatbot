@@ -9,7 +9,7 @@ frontend/.pnp.js
 .db*
 frontend/coverage/
 frontend/build/
-
+.env
 frontend/.env.local
 frontend/.env.development.local
 frontend/.env.test.local
