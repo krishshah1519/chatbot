@@ -1,7 +1,7 @@
 import React, { useEffect, useRef } from 'react';
 import ChatMessage from './ChatMessage';
 
-const ChatHistory = ({ history, isLoading }) => {
+const ChatHistory = ({ history, isLoading, playAudio }) => {
   const endOfMessagesRef = useRef(null);
 
   useEffect(() => {
@@ -17,6 +17,7 @@ const ChatHistory = ({ history, isLoading }) => {
           key={msg.id || `msg-${index}`}
           message={msg}
           isStreaming={isLoading && msg.sender === 'assistant' && index === history.length - 1}
+          playAudio={playAudio}
         />
       ))}
       <div ref={endOfMessagesRef} />

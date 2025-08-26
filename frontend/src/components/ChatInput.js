@@ -1,131 +1,57 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { MicVAD, utils } from '@ricky0123/vad-web';
 import { IoSendSharp } from 'react-icons/io5';
 import { FaPaperclip, FaMicrophone } from 'react-icons/fa';
 
-
-const VAD_STATE = {
-  IDLE: 'idle',
-  INITIALIZING: 'initializing',
-  LISTENING: 'listening',
-  SPEAKING: 'speaking',
-  ERROR: 'error',
-};
-
-const ChatInput = ({ onSendMessage, isLoading, onFileUpload, selectedChatId, onListenStart }) => {
+const ChatInput = ({ onSendMessage, isLoading, onFileUpload, selectedChatId }) => {
   const [question, setQuestion] = useState('');
   const [isListening, setIsListening] = useState(false);
-  const [isSpeaking, setIsSpeaking] = useState(false);
-  const [vadState, setVadState] = useState(VAD_STATE.IDLE);
-
   const recognitionRef = useRef(null);
-  const vadRef = useRef(null);
-  const isSpeakingRef = useRef(false);
 
   useEffect(() => {
-    if ('SpeechRecognition' in window || 'webkitSpeechRecognition' in window) {
-      const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-      recognitionRef.current = new SpeechRecognition();
-      const mic = recognitionRef.current;
-      mic.continuous = false;
-      mic.interimResults = true;
-
-      mic.lang = 'en-US';
-
-      mic.onresult = (event) => {
-        const transcript = Array.from(event.results)
-          .map((result) => result[0].transcript)
-          .join('');
-        setQuestion(transcript);
-      };
-
-      mic.onerror = (event) => {
-        console.error('Speech recognition error:', event.error);
-        stopVAD();
-      };
-
-
-      mic.onend = () => {
-        stopVAD();
-      };
+    if (!('webkitSpeechRecognition' in window)) {
+      console.error("Speech recognition not supported");
+      return;
     }
-  }, []);
 
-  const startVAD = async () => {
-    setVadState(VAD_STATE.INITIALIZING);
-    if (onListenStart) {
-      onListenStart();
-    }
-    try {
-      const vad = await MicVAD.new({
-        onSpeechStart: () => {
-          setVadState(VAD_STATE.SPEAKING);
-          if (!isSpeakingRef.current) {
-            isSpeakingRef.current = true;
-            setIsSpeaking(true);
-            recognitionRef.current.start();
-          }
-        },
-        onSpeechEnd: (audio) => {
-          setVadState(VAD_STATE.LISTENING);
-          if (isSpeakingRef.current) {
-            recognitionRef.current.stop();
-            isSpeakingRef.current = false;
-            setIsSpeaking(false);
-          }
-        },
-      });
+    const recognition = new window.webkitSpeechRecognition();
+    recognition.continuous = true;
+    recognition.interimResults = true;
+    recognition.lang = 'en-US';
 
-      vadRef.current = vad;
-      vad.start();
-      setIsListening(true);
-      setVadState(VAD_STATE.LISTENING);
-    } catch (e) {
-      console.error("Failed to start VAD", e);
-      setVadState(VAD_STATE.ERROR);
-    }
-  };
-
-  const stopVAD = () => {
-    if (isListening) {
-      if (vadRef.current) {
-        vadRef.current.destroy();
-        vadRef.current = null;
+    recognition.onresult = (event) => {
+      let interimTranscript = '';
+      let finalTranscript = '';
+      for (let i = event.resultIndex; i < event.results.length; ++i) {
+        if (event.results[i].isFinal) {
+          finalTranscript += event.results[i][0].transcript;
+        } else {
+          interimTranscript += event.results[i][0].transcript;
+        }
       }
-      if (recognitionRef.current) {
-        recognitionRef.current.stop();
-      }
-      isSpeakingRef.current = false;
-      setIsListening(false);
-      setIsSpeaking(false);
-      setVadState(VAD_STATE.IDLE);
-    }
-  };
-
-
-  useEffect(() => {
-    return () => {
-      if (vadRef.current) {
-        vadRef.current.destroy();
-      }
+      setQuestion(finalTranscript + interimTranscript);
     };
+    recognitionRef.current = recognition;
   }, []);
 
   const toggleListening = () => {
     if (isListening) {
-      stopVAD();
+      recognitionRef.current.stop();
+      setIsListening(false);
     } else {
-      startVAD();
+      recognitionRef.current.start();
+      setIsListening(true);
     }
   };
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    stopVAD();
+    if (isListening) {
+      recognitionRef.current.stop();
+      setIsListening(false);
+    }
     if (question.trim() && !isLoading) {
       onSendMessage(question);
       setQuestion('');
-      stopVAD();
     }
   };
 
@@ -133,17 +59,6 @@ const ChatInput = ({ onSendMessage, isLoading, onFileUpload, selectedChatId, onL
     const file = event.target.files[0];
     if (file) {
       onFileUpload(file);
-    }
-  };
-
-  const getMicrophoneButtonClass = () => {
-    switch (vadState) {
-      case VAD_STATE.LISTENING:
-        return 'bg-red-500 text-white';
-      case VAD_STATE.SPEAKING:
-        return 'bg-green-500 text-white animate-pulse';
-      default:
-        return 'bg-gray-200 dark:bg-gray-700';
     }
   };
 
@@ -158,7 +73,7 @@ const ChatInput = ({ onSendMessage, isLoading, onFileUpload, selectedChatId, onL
           type="button"
           onClick={toggleListening}
           className={`p-3 rounded-full transition-colors ${
-            isListening ? (isSpeaking ? 'bg-green-500 text-white animate-pulse' : 'bg-red-500 text-white') : 'bg-gray-200 dark:bg-gray-700'
+            isListening ? 'bg-red-500 text-white animate-pulse' : 'bg-gray-200 dark:bg-gray-700'
           }`}
         >
           <FaMicrophone />
@@ -169,7 +84,7 @@ const ChatInput = ({ onSendMessage, isLoading, onFileUpload, selectedChatId, onL
         type="text"
         value={question}
         onChange={(e) => setQuestion(e.target.value)}
-        placeholder={isListening ? (isSpeaking ? "Speaking..." : "Listening...") : "Message Chatbot..."}
+        placeholder="Message Chatbot..."
         disabled={isLoading}
       />
       <button

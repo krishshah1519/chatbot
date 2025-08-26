@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef, useCallback } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { sendMessage, uploadFile } from '../api/chat';
 import ChatHistory from './ChatHistory';
@@ -7,6 +7,7 @@ import Navbar from './Navbar';
 import ChatSidebar from './ChatSidebar';
 import { useChats } from '../hooks/useChats';
 import { useChatHistory } from '../hooks/useChatHistory';
+import { useTextToSpeech } from '../hooks/useTextToSpeech'; // Import the new hook
 
 const ChatPage = () => {
   const { token } = useAuth();
@@ -14,50 +15,15 @@ const ChatPage = () => {
   const { chats, error: chatsError, handleCreateNewChat, handleDeleteChat, handleRenameChat, refetchChats } = useChats();
   const { chatHistory, setChatHistory, isLoading, setIsLoading, error: historyError } = useChatHistory(selectedChatId);
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
-  const audioRef = useRef(null);
+
+
+  const { play: playAudio, stop: stopCurrentAudio } = useTextToSpeech(token);
 
   useEffect(() => {
     if (chats.length > 0 && !selectedChatId) {
       setSelectedChatId(chats[0].id);
     }
   }, [chats, selectedChatId]);
-
-  const stopCurrentAudio = useCallback(() => {
-    if (audioRef.current) {
-      audioRef.current.pause();
-      audioRef.current.currentTime = 0;
-      audioRef.current = null;
-    }
-  }, []);
-
-  const playAudio = useCallback(async (text) => {
-    stopCurrentAudio();
-    try {
-      const response = await fetch(`${process.env.REACT_APP_API_URL}/tts?text=${encodeURIComponent(text)}`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`,
-        },
-      });
-      const blob = await response.blob();
-      const url = URL.createObjectURL(blob);
-      const audio = new Audio(url);
-      audioRef.current = audio;
-
-      const playPromise = audio.play();
-      if (playPromise !== undefined) {
-        playPromise.catch(error => {
-          if (error.name !== 'AbortError') {
-            console.error('Audio playback error:', error);
-          }
-        });
-      }
-    } catch (error) {
-      console.error('Error fetching or creating audio:', error);
-    }
-  }, [token, stopCurrentAudio]);
-
 
   const handleSendMessage = useCallback(async (message) => {
     if (!message.trim() || isLoading || !selectedChatId) return;
@@ -92,7 +58,6 @@ const ChatPage = () => {
         if (done) {
           setIsLoading(false);
           refetchChats();
-          playAudio(fullResponse);
           return;
         }
 
@@ -129,7 +94,7 @@ const ChatPage = () => {
       });
       setIsLoading(false);
     }
-  }, [isLoading, selectedChatId, token, playAudio, refetchChats, setChatHistory, setIsLoading, stopCurrentAudio]);
+  }, [isLoading, selectedChatId, token, refetchChats, setChatHistory, setIsLoading, stopCurrentAudio]);
 
 
   const handleFileUpload = useCallback(async (file) => {
@@ -190,8 +155,8 @@ const ChatPage = () => {
                   {selectedChat?.title || 'Chat'}
                 </h2>
               </div>
-              <ChatHistory history={chatHistory} isLoading={isLoading}/>
-              <ChatInput onSendMessage={handleSendMessage} isLoading={isLoading} onFileUpload={handleFileUpload} selectedChatId={selectedChatId} onListenStart={stopCurrentAudio}/>
+              <ChatHistory history={chatHistory} isLoading={isLoading} playAudio={playAudio}/>
+              <ChatInput onSendMessage={handleSendMessage} isLoading={isLoading} onFileUpload={handleFileUpload} selectedChatId={selectedChatId}/>
             </>
           ) : (
             <div className="flex flex-col justify-center items-center h-full text-gray-400 text-xl">
