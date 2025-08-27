@@ -21,7 +21,7 @@ frontend/build
 frontend/.pnp
 frontend/.pnp.js
 
-
+backend/.venv
 
 
 # Other
@@ -31,3 +31,5 @@ yarn-debug.log*
 yarn-error.log*
 chroma_db/
 uploaded_files/
+
+*.db

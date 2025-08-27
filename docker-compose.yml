@@ -8,8 +8,7 @@ services:
     volumes:
       - ./backend:/app
     env_file:
-      - ./backend/.env
-
+      - ./.env
 
   frontend:
     build:
@@ -22,7 +21,4 @@ services:
     depends_on:
       - backend
     env_file:
-      - ./frontend/.env
-
-
-
+      - ./.env
