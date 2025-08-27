@@ -7,7 +7,7 @@ A responsive, full-stack chatbot application built with a **Python (FastAPI)** b
 </div>
 
 <p align="center">
-  <a href="[https://chatbot-frontend-fso2.onrender.com/]"><strong>🚀 View Live Demo</strong></a>
+  <a href="https://chatbot-frontend-fso2.onrender.com"><strong>🚀 View Live Demo</strong></a>
 </p>
 
 ---
@@ -159,3 +159,4 @@ Building this application provided several valuable learning experiences:
 ## 📜 License
 
 This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for details.
+
