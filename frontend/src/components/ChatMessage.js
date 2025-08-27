@@ -50,12 +50,12 @@ const ChatMessage = memo(({ message, isStreaming }) => {
     <div
       className={`flex flex-col max-w-xl lg-max-w-3xl shadow-sm ${
         message.sender === 'user'
-          ? 'bg-blue-500 text-white self-end rounded-xl rounded-br-none'
-          : 'bg-white dark:bg-gray-800 text-gray-800 dark:text-gray-100 self-start rounded-xl rounded-bl-none'
+          ? 'bg-blue-500 text-white self-end rounded-xl rounded-br-none max-w-screen-md'
+          : 'bg-white dark:bg-gray-800 text-gray-800 dark:text-gray-100 self-start rounded-xl rounded-bl-none max-w-screen-md'
       }`}
     >
-      <div className="flex items-start justify-between">
-        <div className="prose dark:prose-invert prose-sm p-4 max-w-none">
+      <div className="flex items-start justify-between ">
+        <div className="prose dark:prose-invert prose-sm p-4 max-w-screen-md">
           {message.sender === 'assistant' && isStreaming && !displayedMessage ? (
             <LoadingIndicator />
           ) : (
