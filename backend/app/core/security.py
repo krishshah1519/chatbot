@@ -7,9 +7,9 @@ from dotenv import load_dotenv
 from fastapi import Depends, HTTPException, status, Request # 1. Import Request
 from fastapi.security import OAuth2PasswordBearer
 from sqlalchemy.orm import Session
-from backend.app.services import user_service
-from backend.app.models.user import User
-from backend.app.db.session import get_db
+from app.services import user_service
+from app.models.user import User
+from app.db.session import get_db
 
 load_dotenv()
 SECRET_KEY = os.getenv("SECRET_KEY")

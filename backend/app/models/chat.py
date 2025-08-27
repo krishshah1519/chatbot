@@ -1,6 +1,6 @@
 from sqlalchemy import Column, String, Text, ForeignKey, DateTime
 from sqlalchemy.sql import func
-from backend.app.db.session import Base
+from app.db.session import Base
 import uuid
 from sqlalchemy.orm import relationship
 from datetime import datetime

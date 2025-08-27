@@ -1,4 +1,4 @@
-from backend.app.models.message import Message
+from app.models.message import Message
 from sqlalchemy.orm import Session
 
 def create_message(chat_id:str, sender:str , message_text: str,db: Session):

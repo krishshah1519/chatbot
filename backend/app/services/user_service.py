@@ -1,7 +1,7 @@
 from pydantic import EmailStr
 from sqlalchemy.orm import Session
-from backend.app.models.user import User
-from backend.app.schemas.user import CreateUser
+from app.models.user import User
+from app.schemas.user import CreateUser
 from passlib.context import CryptContext
 
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")

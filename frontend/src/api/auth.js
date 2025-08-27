@@ -1,5 +1,5 @@
 import axios from 'axios';
-const API_URL = process.env.REACT_APP_API_URL;
+const API_URL = 'http://localhost:8000';
 
 export const login = async (username, password) => {
   const formData = new FormData();

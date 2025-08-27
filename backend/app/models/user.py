@@ -1,7 +1,7 @@
 from sqlalchemy import Column, String, DateTime
 from sqlalchemy.sql import func
 from sqlalchemy.orm import relationship
-from backend.app.db.session import Base
+from app.db.session import Base
 import uuid
 from datetime import datetime
 from dateutil import tz

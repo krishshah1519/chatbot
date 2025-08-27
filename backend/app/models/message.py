@@ -1,4 +1,4 @@
-from backend.app.db.session import Base
+from app.db.session import Base
 from sqlalchemy import Column, String, ForeignKey, Text, DateTime, func
 from sqlalchemy.orm import relationship
 import uuid

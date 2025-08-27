@@ -1,7 +1,7 @@
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from app.db.session import engine, Base
+
 from app.api import chat, user, tts
 
 app = FastAPI(

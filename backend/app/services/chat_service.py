@@ -1,8 +1,8 @@
 from sqlalchemy.orm import Session
 from sqlalchemy.sql import func
 from sqlalchemy import desc
-from backend.app.schemas.chat import ChatMessageOut, ChatTitleUpdate, ChatOut
-from backend.app.models.chat import Chat
+from app.schemas.chat import ChatMessageOut, ChatTitleUpdate, ChatOut
+from app.models.chat import Chat
 from fastapi import HTTPException
 from typing import List
 

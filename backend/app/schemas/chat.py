@@ -2,7 +2,7 @@ from pydantic import BaseModel
 from typing import List, Dict, Any
 from datetime import datetime
 from typing import Optional
-from backend.app.schemas.message import MessageOut
+from app.schemas.message import MessageOut
 
 
 

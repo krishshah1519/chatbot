@@ -2,16 +2,16 @@ from fastapi import APIRouter, Depends, HTTPException, status, File, UploadFile
 from starlette.responses import StreamingResponse
 import os
 import shutil
-from backend.app.db.session import get_db
-from backend.app.schemas.message import MessageCreate
+from app.db.session import get_db
+from app.schemas.message import MessageCreate
 
 router = APIRouter()
 from sqlalchemy.orm import Session
 from dotenv import load_dotenv
-from backend.app.core.security import get_current_user
-from backend.app.models.user import User
-from backend.app.schemas.chat import ChatCreateResponse, ChatOut, ChatTitleUpdate, ChatMessageOut
-from backend.app.services import chat_service, message_service, llm_service, rag_service
+from app.core.security import get_current_user
+from app.models.user import User
+from app.schemas.chat import ChatCreateResponse, ChatOut, ChatTitleUpdate, ChatMessageOut
+from app.services import chat_service, message_service, llm_service, rag_service
 
 from typing import List
 

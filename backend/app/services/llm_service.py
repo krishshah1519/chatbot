@@ -7,7 +7,7 @@ from langchain_core.output_parsers import StrOutputParser
 from langchain_google_genai import ChatGoogleGenerativeAI
 from fastapi import HTTPException
 from dotenv import load_dotenv
-from backend.app.services.rag_service import get_retriever
+from app.services.rag_service import get_retriever
 import os
 
 load_dotenv()
