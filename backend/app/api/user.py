@@ -47,8 +47,8 @@ async def login_for_access_token(
         key="token",
         value=access_token,
         httponly=True,
-        secure=os.getenv("ENVIRONMENT") == "production",
-        samesite='strict',
+        secure=True,
+        samesite='none',
         max_age=security.ACCESS_TOKEN_EXPIRE_MINUTES * 60,
         path="/"
     )

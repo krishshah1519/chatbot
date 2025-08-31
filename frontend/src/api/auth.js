@@ -1,5 +1,5 @@
 import axios from 'axios';
-const API_URL = 'http://localhost:8000';
+const API_URL ='https://chatbot-backend-05oa.onrender.com';
 
 export const login = async (username, password) => {
   const formData = new FormData();
