@@ -5,7 +5,6 @@ import { login as loginApi } from '../api/auth';
 const AuthContext = createContext();
 
 export const AuthProvider = ({ children }) => {
-  // Get token from localStorage instead of cookies
   const [token, setToken] = useState(localStorage.getItem('token'));
   const [user, setUser] = useState(null);
 
@@ -14,15 +13,13 @@ export const AuthProvider = ({ children }) => {
       try {
         const decodedUser = jwtDecode(token);
         setUser(decodedUser);
-        // Also set it in localStorage
         localStorage.setItem('token', token);
       } catch (error) {
         console.error('Failed to decode token:', error);
         logout();
       }
     } else {
-        // If no token, clear localStorage
-        localStorage.removeItem('token');
+      localStorage.removeItem('token');
     }
   }, [token]);
 
@@ -34,7 +31,6 @@ export const AuthProvider = ({ children }) => {
   const logout = () => {
     setToken(null);
     setUser(null);
-    // Clear the token from localStorage
     localStorage.removeItem('token');
   };
 

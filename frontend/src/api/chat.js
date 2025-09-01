@@ -1,30 +1,23 @@
-import axios from 'axios';
-
-const API_URL ='https://chatbot-backend-05oa.onrender.com';
-
-const api = axios.create({
-  baseURL: API_URL,
-  withCredentials: true,
-});
-
-
+import api from './index'; // Import the configured axios instance
 
 export const getChats = async () => {
   const response = await api.get('/chats');
   return response.data;
 };
 
+// NOTE: This uses fetch, so we need to add the token manually
+// For a fully robust solution, this should also be converted to use the `api` instance
 export const sendMessage = (chatId, message) => {
-  return fetch(`${API_URL}/chats/${chatId}/message`, {
+  const token = localStorage.getItem('token');
+  return fetch(`${process.env.REACT_APP_API_URL || 'http://localhost:8000'}/chats/${chatId}/message`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
+      'Authorization': `Bearer ${token}`
     },
     body: JSON.stringify({ message }),
-    credentials: 'include',
   });
 };
-
 
 export const createChat = async () => {
   const response = await api.post('/chats', {});
@@ -47,6 +40,7 @@ export const uploadFile = async (chatId, file) => {
   });
   return response.data;
 };
+
 export const renameChat = async (chatId, newTitle) => {
   const response = await api.patch(`/chats/${chatId}`, { title: newTitle });
   return response.data;

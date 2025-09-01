@@ -27,7 +27,6 @@ async def register(user: CreateUser, db: Session = Depends(get_db)):
 
 @router.post("/login", response_model=Token)
 async def login_for_access_token(
-    response: Response,
     form_data: OAuth2PasswordRequestForm = Depends(),
     db: Session = Depends(get_db),
 ):
@@ -42,14 +41,4 @@ async def login_for_access_token(
 
     access_token = security.create_access_token(data={"sub": user.username})
 
-
-    response.set_cookie(
-        key="token",
-        value=access_token,
-        httponly=True,
-        secure=True,
-        samesite='none',
-        max_age=security.ACCESS_TOKEN_EXPIRE_MINUTES * 60,
-        path="/"
-    )
     return {"access_token": access_token, "token_type": "bearer"}

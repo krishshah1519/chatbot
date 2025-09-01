@@ -1,4 +1,3 @@
-# backend/app/core/security.py
 
 import os
 from datetime import datetime, timedelta
@@ -37,7 +36,9 @@ credentials_exception = HTTPException(
 )
 
 
-async def get_current_user(token: str = Depends(get_token_from_cookie), db: Session = Depends(get_db)) -> User:
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl="login")
+
+async def get_current_user(token: str = Depends(oauth2_scheme), db: Session = Depends(get_db)) -> User:
     if token is None:
         raise credentials_exception
     try:

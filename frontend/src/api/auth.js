@@ -1,17 +1,17 @@
-import axios from 'axios';
-const API_URL ='https://chatbot-backend-05oa.onrender.com';
+import api from './index'; // Import the configured axios instance
 
 export const login = async (username, password) => {
   const formData = new FormData();
   formData.append('username', username);
   formData.append('password', password);
 
-
-  const response = await axios.post(`${API_URL}/login`, formData, { withCredentials: true });
+  // Use the central 'api' instance
+  const response = await api.post('/login', formData);
   return response.data;
 };
 
 export const register = async (userData) => {
-  const response = await axios.post(`${API_URL}/register/`, userData);
+  // Use the central 'api' instance
+  const response = await api.post('/register/', userData);
   return response.data;
 };
