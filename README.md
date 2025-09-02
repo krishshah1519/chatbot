@@ -7,7 +7,7 @@ A responsive, full-stack chatbot application built with a **Python (FastAPI)** b
 </div>
 
 <p align="center">
-  <a href="https://chatbot-rbgtda1zj-krishshah1519-gmailcoms-projects.vercel.app/"><strong>🚀 View Live Demo</strong></a>
+  <a href="http://chatbot-delta-two-99.vercel.app"><strong>🚀 View Live Demo</strong></a>
 </p>
 
 ---
