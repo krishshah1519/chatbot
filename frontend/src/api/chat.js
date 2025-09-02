@@ -1,21 +1,14 @@
-import api from './index'; // Import the configured axios instance
+import api from './index';
 
 export const getChats = async () => {
   const response = await api.get('/chats');
   return response.data;
 };
 
-// NOTE: This uses fetch, so we need to add the token manually
-// For a fully robust solution, this should also be converted to use the `api` instance
+
 export const sendMessage = (chatId, message) => {
-  const token = localStorage.getItem('token');
-  return fetch(`${process.env.REACT_APP_API_URL || 'http://localhost:8000'}/chats/${chatId}/message`, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'Authorization': `Bearer ${token}`
-    },
-    body: JSON.stringify({ message }),
+  return api.post(`/chats/${chatId}/message`, { message }, {
+    responseType: 'stream'
   });
 };
 
